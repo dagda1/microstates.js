@@ -20,13 +20,13 @@ function analyzeType(value) {
     let InitialType = node.Type;
     let valueAt = node.valueAt(value);
     let instance = new InitialType(valueAt);
-    
-    let Type; 
+
+    let Type;
     if (instance instanceof Microstate) {
       let { tree } = reveal(instance);
       Type = tree.data.Type;
     } else {
-      Type  = toType(instance.constructor);
+      Type  = toType(InitialType);
     }
 
     return new Tree({
