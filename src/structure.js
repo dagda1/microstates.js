@@ -1,12 +1,13 @@
 import $ from './utils/chain';
-import { map, append, pure, foldl } from 'funcadelic';
+import { map, append, pure } from 'funcadelic';
 import { flatMap } from './monad';
-import { view, set, lensTree, lensPath, lensIndex } from './lens';
+import { view, set, lensTree, lensPath } from './lens';
 import Tree from './utils/tree';
 import transitionsFor from './utils/transitions-for';
 import { reveal } from './utils/secret';
 import types, { params, any, toType } from './types';
 import isSimple  from './is-simple';
+import desugar from './desugar';
 import Microstate from './microstate';
 
 const { assign } = Object;
@@ -15,9 +16,9 @@ export default function analyze(Type, value) {
   return flatMap(analyzeType(value), pure(Tree, new Node(Type, [])));
 }
 
-function analyzeType(value) {
+export function analyzeType(value) {
   return (node) => {
-    let InitialType = node.Type;
+    let InitialType = desugar(node.Type);
     let valueAt = node.valueAt(value);
     let instance = new InitialType(valueAt);
 
@@ -30,7 +31,7 @@ function analyzeType(value) {
     }
 
     return new Tree({
-      data: () => Type === InitialType ? node : append(node, { Type }),
+      data: () => Type === node.Type ? node : append(node, { Type }),
       children() {
         if (isa(Type, types.Array)) {
           let { T } = params(Type);
@@ -45,6 +46,7 @@ function analyzeType(value) {
           }
         }
         return $(new Type())
+          .map(desugar)
           .filter(({ value }) => !!value && value.call)
           .map((ChildType, key) => pure(Tree, new Node(ChildType, append(node.path, key))))
           .valueOf();
@@ -55,6 +57,24 @@ function analyzeType(value) {
 
 function isa(Child, Ancestor) {
   return Child === Ancestor || Child.prototype instanceof Ancestor;
+}
+
+export function collapseState(tree, value) {
+  return new $(tree)
+      .flatMap(node => {
+        if (node.isSimple) {
+          if (isa(node.Type, types.Array)) {
+            return analyzeType(value)(new Node(types.Array, node.path))
+          }
+          if (isa(node.Type, types.Object)) {
+            return analyzeType(value)(new Node(types.Object, node.path));
+          }
+        }
+        return analyzeType(value)(node);
+      })
+    .map(node => {
+      return node.stateAt(value);
+    }).valueOf().collapsed;
 }
 
 /**
@@ -92,7 +112,7 @@ function graft(path, tree) {
 }
 
 class Node {
-  constructor(Type, path, tree) {
+  constructor(Type, path) {
     assign(this, { Type, path });
   }
 
@@ -123,6 +143,7 @@ class Node {
 
   transitionsAt(value, tree, invoke) {
     let { Type, path } = this;
+    
     return map(method => (...args) => {
       let localValue = this.valueAt(value);
       let localTree = view(lensTree(path), tree);
@@ -144,7 +165,5 @@ class Node {
 
       return { tree: nextTree, value: nextValue };
     }, transitionsFor(Type));
-
-    return transitions;
   }
 }
