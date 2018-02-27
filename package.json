@@ -28,7 +28,7 @@
     "coverage:watch": "npm run coverage -- --watch",
     "prerelease": "npm test",
     "release": "npm pack",
-    "prepublish": "npm test",
+    "prepare": "npm test",
     "test": "jest",
     "start": "npm test -- --watch"
   },
