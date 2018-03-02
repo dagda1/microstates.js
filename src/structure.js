@@ -14,17 +14,28 @@ import stable from './stable';
 
 const { assign } = Object;
 
-export default function analyze(Type, value) {
-  return flatMap(analyzeType(value), pure(Tree, new Node(Type, [])));
-}
+export default stable(function analyze(Type, value) {
+  return flatMap(stableAnalyzeType(value), pure(Tree, new Node(Type, [])));
+})
 
-export function collapseState(tree, value) {
-  let truncated = truncate(node => node.isSimple, tree);
-  return collapse(map(node => node.stateAt(value), truncated));
-}
+export const stableCollapseState = stable(function (tree, value) {
+  return collapse(stableTruncatedMapper(stableStateMapper(value), stableTruncate(tree)));
+});
 
-function analyzeType(value) {
-  return (node) => {
+let stableTruncatedMapper = stable(function truncateMapper(callback, truncated) {
+  return map(callback, truncated);
+});
+
+let stableTruncate = stable(function truncateSimple(tree) {
+  return truncate(node => node.isSimple, tree);
+});
+
+let stableStateMapper = stable(function stateMapper(value) {
+  return stable(node => node.stateAt(value));
+});
+
+let stableAnalyzeType = stable(function analyzeType(value) {    
+  return stable((node) => {
     let InitialType = desugar(node.Type);
     let valueAt = node.valueAt(value);
     let Type = toType(InitialType);
@@ -48,8 +59,8 @@ function analyzeType(value) {
         return map((ChildType, path) => pure(Tree, new Node(ChildType, append(node.path, path))), childTypes);
       }
     });
-  };
-}
+  });
+})
 
 const Location = type(class Location {
   stateAt(Type, instance, value) {
@@ -144,17 +155,21 @@ function graft(path, tree) {
 }
 
 const stableStateAt = stable(function(node, value) {
-    let { Type } = node;
-    let valueAt = node.valueAt(value);
-    let instance = new Type(valueAt).valueOf();
-    if (isSimple(Type)) {
-      return valueAt || instance;
-    } else {
-      return stateAt(Type, instance, valueAt);
-    }
+  let { Type } = node;
+  let valueAt = node.valueAt(value);
+  let instance = new Type(valueAt).valueOf();
+  if (isSimple(Type)) {
+    return valueAt || instance;
+  } else {
+    return stateAt(Type, instance, valueAt);
+  }
 });
 
-class Node {
+const stableValueAt = stable(function(path, total) {
+  return view(lensPath(path), total)
+});
+
+export class Node {
   constructor(Type, path) {
     assign(this, { Type, path });
   }
@@ -164,7 +179,7 @@ class Node {
   }
 
   valueAt(total) {
-    return view(lensPath(this.path), total);
+    return stableValueAt(this.path, total);
   }
 
   stateAt(value) {

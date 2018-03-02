@@ -1,7 +1,11 @@
 import 'jest';
+import '../src/typeclasses';
+import { pure } from 'funcadelic';
 import { view, set } from '../src/lens';
-import { analyze, Tree, parameterized } from 'microstates';
+import { analyze, parameterized } from 'microstates';
 import types from '../src/types';
+import { stableCollapseState, Node } from '../src/structure';
+import Tree from '../src/utils/tree';
 
 describe('Structure', () => {
   class Session {
@@ -210,7 +214,19 @@ describe('Structure', () => {
     });
   });
 
+  it('stableCollapseState is stable', () => {
+    let tree = pure(Tree, new Node(Object, []));
+    let value = {hello: 'world'};
 
+    expect(stableCollapseState(tree, value)).toBe(stableCollapseState(tree, value));
+  });
+
+  it('analyze is stable', () => {
+    let tree = pure(Tree, new Node(Object, []));
+    let value = {hello: 'world'};
+
+    expect(analyze(tree, value)).toBe(analyze(tree, value));
+  });
 });
 
 import logTree from '../src/utils/log-tree';

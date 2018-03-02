@@ -1,7 +1,7 @@
-import { map } from "funcadelic";
-import analyze, { collapseState } from "./structure";
-import { keep, reveal } from "./utils/secret";
-import SymbolObservable from "symbol-observable";
+import { map } from 'funcadelic';
+import analyze, { stableCollapseState } from './structure';
+import { keep, reveal } from './utils/secret';
+import SymbolObservable from 'symbol-observable'
 
 export default class Microstate {
   constructor(tree, value) {
@@ -29,7 +29,7 @@ export default class Microstate {
   get state() {
     let { tree, value } = reveal(this);
 
-    return collapseState(tree, value);
+    return stableCollapseState(tree, value);
   }
 
   /**
