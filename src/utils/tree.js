@@ -1,6 +1,7 @@
 import { append, filter, map } from 'funcadelic';
 import $ from './chain';
 import thunk from '../thunk';
+import stable from '../stable';
 import getOwnPropertyDescriptors from 'object.getownpropertydescriptors';
 
 let { keys } = Object;

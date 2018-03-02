@@ -43,5 +43,11 @@ describe('State', () => {
       expect(state.lastName).toEqual('Lowell');
       expect(state.fullName).toEqual('Charles Lowell');
     });
+
+    it('is stable at any the given node', function() {
+      let value = {firstName: 'Charles', lastName: 'Lowell'};
+      let tree = analyze(User, value);
+      expect(tree.data.stateAt(value)).toBe(tree.data.stateAt(value));
+    });
   });
 });

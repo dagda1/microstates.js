@@ -10,6 +10,7 @@ import isSimple  from './is-simple';
 import desugar from './desugar';
 import Microstate from './microstate';
 import { collapse } from './typeclasses/collapse';
+import stable from './stable';
 
 const { assign } = Object;
 
@@ -27,7 +28,7 @@ function analyzeType(value) {
     let InitialType = desugar(node.Type);
     let valueAt = node.valueAt(value);
     let Type = toType(InitialType);
-    
+
     let instance = Type.hasOwnProperty('create') ? Type.create(valueAt) : undefined;
 
     if (instance instanceof Microstate) {
@@ -142,6 +143,17 @@ function graft(path, tree) {
   }
 }
 
+const stableStateAt = stable(function(node, value) {
+    let { Type } = node;
+    let valueAt = node.valueAt(value);
+    let instance = new Type(valueAt).valueOf();
+    if (isSimple(Type)) {
+      return valueAt || instance;
+    } else {
+      return stateAt(Type, instance, valueAt);
+    }
+});
+
 class Node {
   constructor(Type, path) {
     assign(this, { Type, path });
@@ -156,14 +168,7 @@ class Node {
   }
 
   stateAt(value) {
-    let { Type } = this;
-    let valueAt = this.valueAt(value);
-    let instance = new Type(valueAt).valueOf();
-    if (isSimple(Type)) {
-      return valueAt || instance;
-    } else {
-      return stateAt(Type, instance, valueAt);
-    }
+    return stableStateAt(this, value);
   }
 
   transitionsAt(value, tree, invoke) {
