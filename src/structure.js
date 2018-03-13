@@ -15,26 +15,14 @@ import stable from './stable';
 const { assign } = Object;
 
 export default stable(function analyze(Type, value) {
-  return flatMap(stableAnalyzeType(value), pure(Tree, new Node(Type, [])));
+  return flatMap(analyzeType(value), pure(Tree, new Node(Type, [])));
 })
 
 export const stableCollapseState = stable(function (tree, value) {
-  return collapse(stableTruncatedMapper(stableStateMapper(value), stableTruncate(tree)));
+  return collapse(map(node => node.stateAt(value), truncate(node => node.isSimple, tree)));
 });
 
-let stableTruncatedMapper = stable(function truncateMapper(callback, truncated) {
-  return map(callback, truncated);
-});
-
-let stableTruncate = stable(function truncateSimple(tree) {
-  return truncate(node => node.isSimple, tree);
-});
-
-let stableStateMapper = stable(function stateMapper(value) {
-  return stable(node => node.stateAt(value));
-});
-
-let stableAnalyzeType = stable(function analyzeType(value) {    
+function analyzeType(value) {    
   return stable((node) => {
     let InitialType = desugar(node.Type);
     let valueAt = node.valueAt(value);
@@ -60,7 +48,7 @@ let stableAnalyzeType = stable(function analyzeType(value) {
       }
     });
   });
-})
+}
 
 const Location = type(class Location {
   stateAt(Type, instance, value) {
