@@ -23,7 +23,7 @@ export const stableCollapseState = stable(function (tree, value) {
 });
 
 function analyzeType(value) {    
-  return stable((node) => {
+  return (node) => {
     let InitialType = desugar(node.Type);
     let valueAt = node.valueAt(value);
     let Type = toType(InitialType);
@@ -47,7 +47,7 @@ function analyzeType(value) {
         return map((ChildType, path) => pure(Tree, new Node(ChildType, append(node.path, path))), childTypes);
       }
     });
-  });
+  };
 }
 
 const Location = type(class Location {
