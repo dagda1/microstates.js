@@ -142,19 +142,13 @@ function graft(path, tree) {
   }
 }
 
-const stableStateAt = stable(function(node, value) {
-  let { Type } = node;
-  let valueAt = node.valueAt(value);
-  let instance = new Type(valueAt).valueOf();
+const stableInitialize = stable(function(Type, value) {
+  let instance = new Type(value).valueOf();
   if (isSimple(Type)) {
-    return valueAt || instance;
+    return value || instance;
   } else {
-    return stateAt(Type, instance, valueAt);
+    return stateAt(Type, instance, value);
   }
-});
-
-const stableValueAt = stable(function(path, total) {
-  return view(lensPath(path), total)
 });
 
 export class Node {
@@ -167,11 +161,13 @@ export class Node {
   }
 
   valueAt(total) {
-    return stableValueAt(this.path, total);
+    return view(lensPath(this.path), total);
   }
 
   stateAt(value) {
-    return stableStateAt(this, value);
+    let { Type } = this;
+    let valueAt = this.valueAt(value);
+    return stableInitialize(Type, valueAt);
   }
 
   transitionsAt(value, tree, invoke) {

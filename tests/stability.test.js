@@ -3,7 +3,7 @@ import { create } from '../src';
 import { reveal } from '../src/utils/secret';
 
 class Thing {
-  first = class Other {
+  first = class OtherThing {
     other = String;
   }
 
