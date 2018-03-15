@@ -1,5 +1,5 @@
 import $ from './utils/chain';
-import { type, map, append, pure } from 'funcadelic';
+import { type, map, append, pure, stable } from 'funcadelic';
 import { flatMap } from './monad';
 import { view, set, lensTree, lensPath } from './lens';
 import Tree from './utils/tree';
@@ -10,7 +10,9 @@ import isSimple  from './is-simple';
 import desugar from './desugar';
 import Microstate from './microstate';
 import { collapse } from './typeclasses/collapse';
-import stable from './stable';
+
+import StackUtils from 'stack-utils';
+const stack = new StackUtils({cwd: process.cwd(), internals: StackUtils.nodeInternals()});
 
 const { assign } = Object;
 
@@ -19,7 +21,9 @@ export default stable(function analyze(Type, value) {
 })
 
 export const stableCollapseState = stable(function (tree, value) {
-  return collapse(map(node => node.stateAt(value), truncate(node => node.isSimple, tree)));
+  let truncated = truncate(node => node.isSimple, tree);
+  let mapped = map(node => node.stateAt(value), truncated);
+  return collapse(mapped);
 });
 
 function analyzeType(value) {    
@@ -100,7 +104,7 @@ Location.instance(types.Array, {
 function truncate(fn, tree) {
   return flatMap(node => {
     let subtree = view(lensTree(node.path), tree);
-    if (fn(subtree.data)) {
+    if (fn(subtree.data)) {      
       return append(subtree, { children: [] });
     } else {
       return subtree;

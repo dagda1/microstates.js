@@ -1,21 +1,18 @@
-import { append, filter, map } from 'funcadelic';
+import { append, filter, map, stable } from 'funcadelic';
 import $ from './chain';
-import thunk from '../thunk';
-import stable from '../stable';
-import getOwnPropertyDescriptors from 'object.getownpropertydescriptors';
 
 let { keys } = Object;
-
+let id = 0;
 export default class Tree {
   constructor(props = {}) {
     let { data = () => ({}), children = () => ({}) } = props;
     return Object.create(Tree.prototype, {
       data: {
-        get: thunk(data),
+        get: stable(data),
         enumerable: true,
       },
       children: {
-        get: thunk(children),
+        get: stable(children),
         enumerable: true,
       },
     });

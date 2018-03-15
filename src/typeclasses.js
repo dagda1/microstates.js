@@ -1,10 +1,9 @@
-import { Applicative, Functor, map, append } from 'funcadelic';
+import { Applicative, Functor, map, append, stable } from 'funcadelic';
 import { Monad, flatMap } from './monad';
 import Microstate from './microstate';
 import { reveal } from './utils/secret';
 import Tree from './utils/tree';
 import { Collapse, collapse } from './typeclasses/collapse';
-import thunk from './thunk';
 
 const { keys } = Object;
 
@@ -39,14 +38,14 @@ Functor.instance(Microstate, {
 });
 
 Collapse.instance(Tree, {
-  collapse(tree) {
+  collapse: stable(function (tree) {
     let hasChildren = !!keys(tree.children).length;
     if (hasChildren) {
       return append(tree.data, map(child => collapse(child), tree.children));
     } else {
       return tree.data;
     }
-  }
+  })
 })
 
 Functor.instance(Tree, {
@@ -82,7 +81,7 @@ Applicative.instance(Tree, {
 
 Monad.instance(Tree, {
   flatMap(fn, tree) {
-    let next = thunk(() => fn(tree.data));
+    let next = stable(() => fn(tree.data));
     return new Tree({
       data() {
         return next().data;

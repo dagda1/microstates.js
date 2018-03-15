@@ -36,6 +36,7 @@
     "funcadelic": "0.3.3",
     "object.getownpropertydescriptors": "2.0.3",
     "ramda": "0.25.0",
+    "stack-utils": "1.0.1",
     "symbol-observable": "1.2.0"
   },
   "devDependencies": {
