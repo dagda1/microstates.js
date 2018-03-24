@@ -80,7 +80,7 @@ describe("typeclasses", () => {
       last.home.grow(1);
     });
 
-    it('accumulated changed', function() {
+    it('accumulated changes', function() {
       expect(last.valueOf()).toEqual({ name: 'Charles', home: { city: 'Austin', population: 1 }});
     });
   });
