@@ -4,8 +4,8 @@ import { keep, reveal } from "./utils/secret";
 import SymbolObservable from "symbol-observable";
 
 export default class Microstate {
-  constructor(tree, value) {
-    keep(this, { tree, value });
+  constructor(tree) {
+    keep(this, tree);
     return map(transition => transition, this);
   }
 
@@ -19,15 +19,14 @@ export default class Microstate {
    */
   static create(Type, value) {
     let tree = analyze(Type, value);
-    return new Microstate(tree, tree.data.value);
+    return new Microstate(tree);
   }
 
   /**
    * Evaluates to state for this microstate.
    */
   get state() {
-    let { tree } = reveal(this);
-
+    let tree = reveal(this);
     return collapseState(tree, tree.data.value);
   }
 
@@ -35,8 +34,7 @@ export default class Microstate {
    * Return boxed in value for this microstates
    */
   valueOf() {
-    let { tree } = reveal(this);
-    return tree.data.value;
+    return reveal(this).data.value;
   }
 
   [SymbolObservable]() {
