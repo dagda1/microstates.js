@@ -26,9 +26,9 @@ export default class Microstate {
    * Evaluates to state for this microstate.
    */
   get state() {
-    let { tree, value } = reveal(this);
+    let { tree } = reveal(this);
 
-    return collapseState(tree, value);
+    return collapseState(tree, tree.data.value);
   }
 
   /**
