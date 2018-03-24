@@ -10,6 +10,7 @@ import isSimple  from './is-simple';
 import desugar from './desugar';
 import Microstate from './microstate';
 import { collapse } from './typeclasses/collapse';
+import logTree from './utils/log-tree';
 
 const { assign } = Object;
 
@@ -44,7 +45,7 @@ function analyzeType(rootValue) {
       data: () => node,
       children() {
         let childTypes = childrenAt(Type, value);
-        return map((ChildType, path) => pure(Tree, new NestedValue(ChildType, append(node.path, path), rootValue)), childTypes);
+        return map((ChildType, path) => pure(Tree, new NestedValue(ChildType, append(node.path, path), node instanceof PrimaryValue ? value : node.root)), childTypes);
       }
     });
   };
@@ -107,8 +108,6 @@ function truncate(fn, tree) {
     }
   }, tree);
 }
-
-import logTree from './utils/log-tree';
 
 class Node {
   constructor(InitialType, path) {
