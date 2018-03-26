@@ -53,6 +53,10 @@ describe('ArrayType', function() {
     class Thing {}
     let ms = create([Thing], array);
 
+    it('has empty array as default state', function() {
+      expect(create([Thing]).state.length).toBe(0);
+    });
+
     it('has instances of the state for each value in the array', function() {
       expect(ms.state.length).toBe(3);
       expect(ms.state[0]).toBeInstanceOf(Thing);
